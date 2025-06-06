@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres
+    container_name: db
+    restart: always
+    env_file: 
+      - .env 
+    environment:
+      POSTGRES_USER: ${POSTGRESQL_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRES_DB: ${POSTGRESQL_DATABASE}
+    ports:
+      - "5432:5432"  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
+
+  myapp:
+    container_name: myapp
+    restart: always
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - myapp_data:/myapp
+
+volumes:
+  postgres_data:
+  myapp_data:
