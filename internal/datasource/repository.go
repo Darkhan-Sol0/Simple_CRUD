@@ -1,7 +1,8 @@
-package database
+package datasource
 
 import (
-	"MyProgy/scr/models"
+	"MyProgy/infrastructure/database"
+	"MyProgy/internal/models"
 	"context"
 	"errors"
 	"fmt"
@@ -18,10 +19,10 @@ type Storage interface {
 }
 
 type Repository struct {
-	Client Client
+	Client database.Client
 }
 
-func NewRepository(client Client) Storage {
+func NewRepository(client database.Client) Storage {
 	return &Repository{
 		Client: client,
 	}

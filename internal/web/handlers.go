@@ -1,7 +1,7 @@
-package handlers
+package web
 
 import (
-	"MyProgy/scr/models"
+	"MyProgy/internal/models"
 	"net/http"
 	"strconv"
 

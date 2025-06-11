@@ -1,7 +1,7 @@
-package handlers
+package web
 
 import (
-	"MyProgy/scr/database"
+	"MyProgy/internal/datasource"
 	"context"
 	"errors"
 	"net/http"
@@ -10,11 +10,11 @@ import (
 )
 
 type Handler struct {
-	Storage database.Storage
+	Storage datasource.Storage
 	sem     chan struct{}
 }
 
-func NewHandler(storage database.Storage) Handler {
+func NewHandler(storage datasource.Storage) Handler {
 	return Handler{
 		Storage: storage,
 		sem:     make(chan struct{}, 50),

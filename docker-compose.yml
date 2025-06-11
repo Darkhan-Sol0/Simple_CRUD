@@ -1,14 +1,14 @@
 services:
   postgres:
-    image: postgres
+    image: postgres:14-alpine
     container_name: db
     restart: always
     env_file: 
       - .env 
     environment:
-      POSTGRES_USER: ${POSTGRESQL_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
-      POSTGRES_DB: ${POSTGRESQL_DATABASE}
+      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DATABASE}
     ports:
       - "5432:5432"  
     volumes:

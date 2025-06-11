@@ -1,8 +1,9 @@
 package main
 
 import (
-	"MyProgy/scr/database"
-	"MyProgy/scr/handlers"
+	"MyProgy/infrastructure/database"
+	"MyProgy/internal/datasource"
+	"MyProgy/internal/web"
 	"context"
 	"log"
 
@@ -18,8 +19,8 @@ func main() {
 	}
 	defer db.Close()
 
-	repo := database.NewRepository(db)
-	handler := handlers.NewHandler(repo)
+	repo := datasource.NewRepository(db)
+	handler := web.NewHandler(repo)
 	handler.RegHandlers(r)
 
 	log.Println("Starting serveer on :8080")

@@ -23,3 +23,12 @@ init:
 
 get:
 	go get -u $(PACKAGE)
+
+docker_up:
+	sudo docker-compose up
+
+docker_down:
+	sudo docker-compose down -v
+
+docker_clean:
+	sudo docker rmi simple_crud-myapp
