@@ -1,7 +1,7 @@
 package web
 
 import (
-	"MyProgy/internal/models"
+	models "MyProgy/internal/domain"
 	"net/http"
 	"strconv"
 

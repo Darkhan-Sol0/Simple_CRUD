@@ -1,7 +1,7 @@
 package database
 
 import (
-	"MyProgy/pkg/config"
+	"MyProgy/infrastructure/config"
 	"context"
 	"fmt"
 

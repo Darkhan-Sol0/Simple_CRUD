@@ -2,7 +2,12 @@ PROGY = MyProgy
 
 EXEC = progy
 
-PACKAGE = github.com/gin-gonic/gin github.com/jackc/pgx/v5 github.com/jackc/pgx/v5/pgxpool github.com/ilyakaznacheev/cleanenv github.com/joho/godotenv
+PACKAGE = github.com/gin-gonic/gin\
+					github.com/jackc/pgx/v5\
+					github.com/jackc/pgx/v5/pgxpool\
+					github.com/ilyakaznacheev/cleanenv\
+					github.com/joho/godotenv\
+					github.com/golang-jwt/jwt/v5
 
 .PHONY: all build run clean init get
 
