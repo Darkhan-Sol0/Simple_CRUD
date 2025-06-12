@@ -2,6 +2,7 @@ package web
 
 import (
 	models "MyProgy/internal/domain"
+	"MyProgy/pkg/jwt"
 	"net/http"
 	"strconv"
 
@@ -115,7 +116,7 @@ func (h Handler) GetUserIdHandler(c *gin.Context) {
 	resultChan := make(chan Result, 1)
 	go func() {
 		defer close(resultChan)
-		user, err := h.Storage.GetUserId(ctx, int(id))
+		user, err := h.Storage.GetUserById(ctx, int(id))
 		select {
 		case resultChan <- Result{data: user, err: err}:
 		case <-ctx.Done():
@@ -195,6 +196,44 @@ func (h Handler) DeleteUserHandler(c *gin.Context) {
 			return
 		}
 		sendSuccess(c, http.StatusOK, Result{data: "User delete", err: nil})
+	case <-ctx.Done():
+		handleContextError(c, ctx)
+		return
+	}
+}
+
+func (h Handler) AuthUserHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		sendError(c, http.StatusBadRequest, Result{data: "invalid request body", err: err})
+		return
+	}
+	resultChan := make(chan Result, 1)
+	go func() {
+		defer close(resultChan)
+		userOut, err := h.Storage.GetUserByName(ctx, user.Name, user.Password)
+		if err != nil {
+			select {
+			case resultChan <- Result{data: userOut, err: err}:
+			case <-ctx.Done():
+				return
+			}
+		}
+		token, err := jwt.GenerateToken(userOut.ID, userOut.Name, userOut.Email)
+		select {
+		case resultChan <- Result{data: token, err: err}:
+		case <-ctx.Done():
+			return
+		}
+	}()
+	select {
+	case res := <-resultChan:
+		if res.err != nil {
+			sendError(c, http.StatusInternalServerError, Result{data: "failed create user", err: res.err})
+			return
+		}
+		sendSuccess(c, http.StatusCreated, res)
 	case <-ctx.Done():
 		handleContextError(c, ctx)
 		return

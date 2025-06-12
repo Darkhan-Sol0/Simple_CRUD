@@ -3,13 +3,11 @@ ENV GOPROXY=https://goproxy.io,https://proxy.golang.org,https://gocenter.io,dire
 
 WORKDIR /app
 
-COPY ["./go.mod", "./go.sum", "./"]
+# COPY ["./go.mod", "./go.sum", "./"]
+COPY ./ ./
 RUN go mod download
 
-COPY ./ ./
-
-RUN mkdir -p build
-RUN	go build -o ./build/progy ./cmd/main.go
+RUN apk add make
+RUN make build
 
 CMD ["./build/progy"]
-

@@ -8,14 +8,16 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Storage interface {
 	CreateUser(ctx context.Context, u domain.User) (int, error)
 	GetUsers(ctx context.Context) ([]domain.User, error)
-	GetUserId(ctx context.Context, id int) (domain.User, error)
+	GetUserById(ctx context.Context, id int) (domain.User, error)
 	UpdateUser(ctx context.Context, id int, u domain.User) error
 	DeleteUser(ctx context.Context, id int) error
+	GetUserByName(ctx context.Context, name, password string) (domain.User, error)
 }
 
 type Repository struct {
@@ -29,8 +31,14 @@ func NewRepository(client database.Client) Storage {
 }
 
 func (r *Repository) CreateUser(ctx context.Context, u domain.User) (id int, err error) {
-	query := `INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id`
-	err = r.Client.QueryRow(ctx, query, u.Name, u.Email).Scan(&id)
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(u.Password), 10)
+	if err != nil {
+		return 0, err
+	}
+
+	query := `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id`
+	err = r.Client.QueryRow(ctx, query, u.Name, u.Email, passwordHash).Scan(&id)
 	return id, err
 }
 
@@ -55,12 +63,26 @@ func (r *Repository) GetUsers(ctx context.Context) ([]domain.User, error) {
 	return users, nil
 }
 
-func (r *Repository) GetUserId(ctx context.Context, id int) (domain.User, error) {
+func (r *Repository) GetUserById(ctx context.Context, id int) (domain.User, error) {
 	guery := `SELECT id, name, email FROM users WHERE id = $1`
 	row := r.Client.QueryRow(ctx, guery, id)
 	var user domain.User
 	if err := row.Scan(&user.ID, &user.Name, &user.Email); err != nil {
 		return domain.User{}, fmt.Errorf("failed to scan user: %w", err)
+	}
+	return user, nil
+}
+
+func (r *Repository) GetUserByName(ctx context.Context, name, password string) (domain.User, error) {
+	guery := `SELECT id, name, email, password FROM users WHERE name = $1`
+	row := r.Client.QueryRow(ctx, guery, name)
+	var user domain.User
+	if err := row.Scan(&user.ID, &user.Name, &user.Email, &user.PasswordHash); err != nil {
+		return domain.User{}, fmt.Errorf("failed to scan user: %w", err)
+	}
+	err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password))
+	if err != nil {
+		return domain.User{}, fmt.Errorf("%s, %s", user.PasswordHash, password)
 	}
 	return user, nil
 }

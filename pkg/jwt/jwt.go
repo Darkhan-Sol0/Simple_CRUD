@@ -21,10 +21,12 @@ func GenerateToken(userID int, name, email string) (string, error) {
 		Email:    email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    "MyProgy",
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString(config.GetJwtEnv())
+	signedToken, err := token.SignedString([]byte(config.GetJwtEnv().JWTKey))
 	if err != nil {
 		return "", err
 	}
@@ -33,7 +35,7 @@ func GenerateToken(userID int, name, email string) (string, error) {
 
 func ValidateToken(signedToken string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(signedToken, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		return config.GetJwtEnv(), nil
+		return []byte(config.GetJwtEnv().JWTKey), nil
 	})
 	if err != nil {
 		return nil, err

@@ -7,7 +7,8 @@ PACKAGE = github.com/gin-gonic/gin\
 					github.com/jackc/pgx/v5/pgxpool\
 					github.com/ilyakaznacheev/cleanenv\
 					github.com/joho/godotenv\
-					github.com/golang-jwt/jwt/v5
+					github.com/golang-jwt/jwt/v5\
+					
 
 .PHONY: all build run clean init get
 
@@ -16,6 +17,9 @@ all: build run
 build:
 	mkdir -p build
 	go build -o ./build/$(EXEC) ./cmd/main.go
+
+build_run:
+	./build/$(EXEC)
 
 run:
 	./build/$(EXEC)

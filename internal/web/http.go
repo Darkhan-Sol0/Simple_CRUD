@@ -19,12 +19,19 @@ func NewHandler(storage datasource.Storage) Handler {
 }
 
 func (h *Handler) RegHandlers(r *gin.Engine) {
+
 	r.GET("/", h.TimeoutAndSemoporeMiddleware(), h.MainHandler)
 	r.GET("/hello", h.TimeoutAndSemoporeMiddleware(), h.HelloHandler)
-
+	r.GET("/auth", h.TimeoutAndSemoporeMiddleware(), h.AuthUserHandler)
 	r.POST("/user", h.TimeoutAndSemoporeMiddleware(), h.CreateUserHandler)
-	r.GET("/users", h.TimeoutAndSemoporeMiddleware(), h.GetUsersHandler)
-	r.GET("/user/:id", h.TimeoutAndSemoporeMiddleware(), h.GetUserIdHandler)
-	r.PATCH("/user/:id", h.TimeoutAndSemoporeMiddleware(), h.UpdateUserHandler)
-	r.DELETE("user/:id", h.TimeoutAndSemoporeMiddleware(), h.DeleteUserHandler)
+
+	authGroup := r.Group("/", h.ValidateTokenMiddleware())
+	{
+		// authGroup.POST("/user", h.TimeoutAndSemoporeMiddleware(), h.CreateUserHandler)
+		authGroup.GET("/users", h.TimeoutAndSemoporeMiddleware(), h.GetUsersHandler)
+		authGroup.GET("/user/:id", h.TimeoutAndSemoporeMiddleware(), h.GetUserIdHandler)
+		authGroup.PATCH("/user/:id", h.TimeoutAndSemoporeMiddleware(), h.UpdateUserHandler)
+		authGroup.DELETE("user/:id", h.TimeoutAndSemoporeMiddleware(), h.DeleteUserHandler)
+	}
+
 }
