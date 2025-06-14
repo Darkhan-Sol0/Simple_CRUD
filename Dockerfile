@@ -10,4 +10,4 @@ RUN go mod download
 RUN apk add make
 RUN make build
 
-CMD ["./build/progy"]
+CMD ["./build_app/progy"]

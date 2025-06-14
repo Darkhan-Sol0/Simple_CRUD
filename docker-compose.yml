@@ -14,19 +14,19 @@ services:
     volumes:
       - ./postgres_data:/var/lib/postgresql/data 
 
-  # myapp:
-  #   container_name: myapp
-  #   restart: always
-  #   depends_on:
-  #     - postgres
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8080:8080"
-  #   volumes:
-  #     - myapp_data:/myapp
+  myapp:
+    container_name: myapp
+    restart: always
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - myapp_data:/myapp
 
 volumes:
   postgres_data:
-  # myapp_data:
+  myapp_data:

@@ -10,45 +10,13 @@ import (
 )
 
 func (h Handler) MainHandler(c *gin.Context) {
-	ctx := c.Request.Context()
-	resultChan := make(chan Result, 1)
-	go func() {
-		defer close(resultChan)
-		text := "Main Text"
-		select {
-		case resultChan <- Result{data: text, err: nil}:
-		case <-ctx.Done():
-			return
-		}
-	}()
-	select {
-	case res := <-resultChan:
-		sendSuccess(c, http.StatusOK, res)
-	case <-ctx.Done():
-		handleContextError(c, ctx)
-		return
-	}
+	text := "Main Text"
+	sendSuccess(c, http.StatusOK, Result{data: text, err: nil})
 }
 
 func (h Handler) HelloHandler(c *gin.Context) {
-	ctx := c.Request.Context()
-	resultChan := make(chan Result, 1)
-	go func() {
-		defer close(resultChan)
-		text := "Hello, World"
-		select {
-		case resultChan <- Result{data: text, err: nil}:
-		case <-ctx.Done():
-			return
-		}
-	}()
-	select {
-	case res := <-resultChan:
-		sendSuccess(c, http.StatusOK, res)
-	case <-ctx.Done():
-		handleContextError(c, ctx)
-		return
-	}
+	text := "Hello, World"
+	sendSuccess(c, http.StatusOK, Result{data: text, err: nil})
 }
 
 func (h Handler) CreateUserHandler(c *gin.Context) {
@@ -58,52 +26,23 @@ func (h Handler) CreateUserHandler(c *gin.Context) {
 		sendError(c, http.StatusBadRequest, Result{data: "invalid request body", err: err})
 		return
 	}
-	resultChan := make(chan Result, 1)
-	go func() {
-		defer close(resultChan)
-		id, err := h.Storage.CreateUser(ctx, user)
-		select {
-		case resultChan <- Result{data: id, err: err}:
-		case <-ctx.Done():
-			return
-		}
-	}()
-	select {
-	case res := <-resultChan:
-		if res.err != nil {
-			sendError(c, http.StatusInternalServerError, Result{data: "failed create user", err: res.err})
-			return
-		}
-		sendSuccess(c, http.StatusCreated, res)
-	case <-ctx.Done():
-		handleContextError(c, ctx)
+	id, err := h.Storage.CreateUser(ctx, user)
+	if err != nil {
+		sendError(c, http.StatusNotFound, Result{data: "failed create user", err: err})
 		return
 	}
+	sendSuccess(c, http.StatusCreated, Result{data: id, err: err})
 }
 
 func (h Handler) GetUsersHandler(c *gin.Context) {
 	ctx := c.Request.Context()
-	resultChan := make(chan Result, 1)
-	go func() {
-		defer close(resultChan)
-		users, err := h.Storage.GetUsers(ctx)
-		select {
-		case resultChan <- Result{data: users, err: err}:
-		case <-ctx.Done():
-			return
-		}
-	}()
-	select {
-	case res := <-resultChan:
-		if res.err != nil {
-			sendError(c, http.StatusInternalServerError, Result{data: "failed get user", err: res.err})
-			return
-		}
-		sendSuccess(c, http.StatusOK, res)
-	case <-ctx.Done():
-		handleContextError(c, ctx)
+	users, err := h.Storage.GetUsers(ctx)
+	if err != nil {
+		sendError(c, http.StatusNotFound, Result{data: "failed get user", err: err})
 		return
 	}
+	sendSuccess(c, http.StatusOK, Result{data: users, err: nil})
+
 }
 
 func (h Handler) GetUserIdHandler(c *gin.Context) {
@@ -113,27 +52,12 @@ func (h Handler) GetUserIdHandler(c *gin.Context) {
 		sendError(c, http.StatusBadRequest, Result{data: "wrong id", err: err})
 		return
 	}
-	resultChan := make(chan Result, 1)
-	go func() {
-		defer close(resultChan)
-		user, err := h.Storage.GetUserById(ctx, int(id))
-		select {
-		case resultChan <- Result{data: user, err: err}:
-		case <-ctx.Done():
-			return
-		}
-	}()
-	select {
-	case res := <-resultChan:
-		if res.err != nil {
-			sendError(c, http.StatusInternalServerError, Result{data: "failed get user", err: res.err})
-			return
-		}
-		sendSuccess(c, http.StatusOK, res)
-	case <-ctx.Done():
-		handleContextError(c, ctx)
+	user, err := h.Storage.GetUserById(ctx, int(id))
+	if err != nil {
+		sendError(c, http.StatusNotFound, Result{data: "failed get user", err: err})
 		return
 	}
+	sendSuccess(c, http.StatusOK, Result{data: user, err: nil})
 }
 
 func (h Handler) UpdateUserHandler(c *gin.Context) {
@@ -149,27 +73,12 @@ func (h Handler) UpdateUserHandler(c *gin.Context) {
 		sendError(c, http.StatusBadRequest, Result{data: "failed update user", err: err})
 		return
 	}
-	resultChan := make(chan Result, 1)
-	go func() {
-		defer close(resultChan)
-		err := h.Storage.UpdateUser(ctx, int(id), user)
-		select {
-		case resultChan <- Result{data: nil, err: err}:
-		case <-ctx.Done():
-			return
-		}
-	}()
-	select {
-	case res := <-resultChan:
-		if res.err != nil {
-			sendError(c, http.StatusInternalServerError, Result{data: "failed get user", err: res.err})
-			return
-		}
-		sendSuccess(c, http.StatusOK, Result{data: "User updated", err: nil})
-	case <-ctx.Done():
-		handleContextError(c, ctx)
+	err = h.Storage.UpdateUser(ctx, int(id), user)
+	if err != nil {
+		sendError(c, http.StatusNotFound, Result{data: "failed get user", err: err})
 		return
 	}
+	sendSuccess(c, http.StatusOK, Result{data: "User updated", err: nil})
 }
 
 func (h Handler) DeleteUserHandler(c *gin.Context) {
@@ -179,27 +88,12 @@ func (h Handler) DeleteUserHandler(c *gin.Context) {
 		sendError(c, http.StatusBadRequest, Result{data: "wrong id", err: err})
 		return
 	}
-	resultChan := make(chan Result, 1)
-	go func() {
-		defer close(resultChan)
-		res := h.Storage.DeleteUser(ctx, int(id))
-		select {
-		case resultChan <- Result{data: nil, err: res}:
-		case <-ctx.Done():
-			return
-		}
-	}()
-	select {
-	case res := <-resultChan:
-		if res.err != nil {
-			sendError(c, http.StatusInternalServerError, Result{data: "failed delete user", err: res.err})
-			return
-		}
-		sendSuccess(c, http.StatusOK, Result{data: "User delete", err: nil})
-	case <-ctx.Done():
-		handleContextError(c, ctx)
+	err = h.Storage.DeleteUser(ctx, int(id))
+	if err != nil {
+		sendError(c, http.StatusNotFound, Result{data: "failed delete user", err: err})
 		return
 	}
+	sendSuccess(c, http.StatusOK, Result{data: "User delete", err: nil})
 }
 
 func (h Handler) AuthUserHandler(c *gin.Context) {
@@ -209,33 +103,15 @@ func (h Handler) AuthUserHandler(c *gin.Context) {
 		sendError(c, http.StatusBadRequest, Result{data: "invalid request body", err: err})
 		return
 	}
-	resultChan := make(chan Result, 1)
-	go func() {
-		defer close(resultChan)
-		userOut, err := h.Storage.GetUserByName(ctx, user.Name, user.Password)
-		if err != nil {
-			select {
-			case resultChan <- Result{data: userOut, err: err}:
-			case <-ctx.Done():
-				return
-			}
-		}
-		token, err := jwt.GenerateToken(userOut.ID, userOut.Name, userOut.Email)
-		select {
-		case resultChan <- Result{data: token, err: err}:
-		case <-ctx.Done():
-			return
-		}
-	}()
-	select {
-	case res := <-resultChan:
-		if res.err != nil {
-			sendError(c, http.StatusInternalServerError, Result{data: "failed create user", err: res.err})
-			return
-		}
-		sendSuccess(c, http.StatusCreated, res)
-	case <-ctx.Done():
-		handleContextError(c, ctx)
+	userOut, err := h.Storage.GetUserByName(ctx, user.Name, user.Password)
+	if err != nil {
+		sendError(c, http.StatusBadRequest, Result{data: "invalid request body", err: err})
 		return
 	}
+	token, err := jwt.GenerateToken(userOut.ID, userOut.Name, userOut.Role, userOut.Email)
+	if err != nil {
+		sendError(c, http.StatusNotFound, Result{data: "failed create user", err: err})
+		return
+	}
+	sendSuccess(c, http.StatusCreated, Result{data: token, err: nil})
 }

@@ -15,14 +15,14 @@ PACKAGE = github.com/gin-gonic/gin\
 all: build run
 
 build:
-	mkdir -p build
-	go build -o ./build/$(EXEC) ./cmd/main.go
+	mkdir -p build_app
+	go build -o ./build_app/$(EXEC) ./cmd/auth/auth.go
 
 build_run:
-	./build/$(EXEC)
+	./build_app/$(EXEC)
 
 run:
-	./build/$(EXEC)
+	./build_app/$(EXEC)
 
 clean:
 	rm -rf ./build/$(EXEC)
